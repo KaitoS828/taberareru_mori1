@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="glass-card rounded-2xl p-8 max-w-md w-full text-center animate-fade-in">
-        <div className="text-8xl font-bold gradient-text mb-4">404</div>
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="max-w-md w-full text-center animate-fade-in">
+        <div className="text-7xl font-bold text-text-muted mb-4">404</div>
         <h1 className="text-2xl font-bold text-foreground mb-3">
           ページが見つかりません
         </h1>
@@ -14,13 +14,13 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/"
-            className="px-6 py-3 rounded-xl gradient-bg text-white font-semibold hover:shadow-lg transition-all duration-200"
+            className="px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
           >
             ホームに戻る
           </Link>
           <Link
             href="/checkin"
-            className="px-6 py-3 rounded-xl border border-border text-foreground font-semibold hover:bg-surface-secondary transition-all duration-200"
+            className="px-6 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-surface-secondary transition-colors"
           >
             チェックインへ
           </Link>

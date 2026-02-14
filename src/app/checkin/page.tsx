@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import BiometricAuth from './components/BiometricAuth';
 import SecretCodeInput from './components/SecretCodeInput';
 
@@ -27,79 +28,59 @@ export default function CheckinPage() {
     setDoorPin(null);
   };
 
+  const steps = [
+    { key: 'biometric', label: '生体認証' },
+    { key: 'secret_code', label: 'Secret Code' },
+    { key: 'complete', label: '完了' },
+  ];
+  const currentIndex = steps.findIndex((s) => s.key === currentStep);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            セルフチェックイン
-          </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            生体認証とSecret Codeでチェックインしてください
-          </p>
-        </div>
-      </div>
+      <nav className="max-w-2xl mx-auto px-6 py-8 flex items-center justify-between">
+        <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
+          Smart Check-in
+        </Link>
+      </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
-            <div className="flex items-center">
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep !== 'biometric'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-blue-500 text-white'
-                }`}
-              >
-                {currentStep !== 'biometric' ? '✓' : '1'}
+      <div className="max-w-2xl mx-auto px-6 pb-16">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
+          セルフチェックイン
+        </h1>
+        <p className="text-text-secondary mb-10">
+          生体認証とSecret Codeで本人確認を行います
+        </p>
+
+        {/* Progress */}
+        <div className="flex items-center gap-2 mb-10">
+          {steps.map((step, i) => (
+            <div key={step.key} className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${
+                    i < currentIndex
+                      ? 'bg-foreground text-background'
+                      : i === currentIndex
+                      ? 'bg-foreground text-background'
+                      : 'bg-surface-secondary text-text-muted border border-border'
+                  }`}
+                >
+                  {i < currentIndex ? '✓' : i + 1}
+                </div>
+                <span className={`text-sm ${i <= currentIndex ? 'text-foreground font-medium' : 'text-text-muted'}`}>
+                  {step.label}
+                </span>
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                生体認証
-              </span>
+              {i < steps.length - 1 && (
+                <div className={`w-8 h-px ${i < currentIndex ? 'bg-foreground' : 'bg-border'}`} />
+              )}
             </div>
-
-            <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
-
-            <div className="flex items-center">
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep === 'complete'
-                    ? 'bg-green-500 text-white'
-                    : currentStep === 'secret_code'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {currentStep === 'complete' ? '✓' : '2'}
-              </div>
-              <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                Secret Code
-              </span>
-            </div>
-
-            <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
-
-            <div className="flex items-center">
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  currentStep === 'complete'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {currentStep === 'complete' ? '✓' : '3'}
-              </div>
-              <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                完了
-              </span>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Step Content */}
-        <div className="max-w-2xl mx-auto">
+        <div className="animate-fade-in">
           {currentStep === 'biometric' && (
             <BiometricAuth onAuthSuccess={handleBiometricSuccess} />
           )}
@@ -112,66 +93,57 @@ export default function CheckinPage() {
           )}
 
           {currentStep === 'complete' && doorPin && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8">
-              <div className="text-center">
-                <div className="text-green-600 text-6xl mb-6">✓</div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <div className="space-y-6">
+              <div className="text-center py-4">
+                <div className="text-4xl mb-4">✓</div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">
                   チェックイン完了
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-8">
+                <p className="text-text-secondary">
                   以下のPINコードでドアを解錠してください
                 </p>
-
-                <div className="bg-blue-50 dark:bg-blue-900/20 border-4 border-blue-500 rounded-lg p-8 mb-8">
-                  <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
-                    ドア解錠PIN
-                  </p>
-                  <p className="text-6xl font-bold font-mono text-blue-600 dark:text-blue-400 tracking-wider">
-                    {doorPin}
-                  </p>
-                </div>
-
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded p-4 mb-6">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                    <strong>重要:</strong>{' '}
-                    このPINコードをスマートロックに入力してドアを解錠してください。
-                    <br />
-                    PINコードは再度表示されませんので、スクリーンショットを保存することをお勧めします。
-                  </p>
-                </div>
-
-                <button
-                  onClick={handleStartOver}
-                  className="mt-4 px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
-                >
-                  最初に戻る
-                </button>
               </div>
+
+              <div className="border-2 border-foreground rounded-lg p-8 text-center">
+                <p className="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-2">
+                  ドア解錠PIN
+                </p>
+                <p className="text-5xl font-bold font-mono text-foreground tracking-widest">
+                  {doorPin}
+                </p>
+              </div>
+
+              <div className="bg-surface-secondary rounded-lg p-4">
+                <p className="text-sm text-text-secondary">
+                  <strong className="text-foreground">重要:</strong>{' '}
+                  このPINコードをスマートロックに入力してドアを解錠してください。
+                  PINコードは再度表示されませんので、スクリーンショットを保存することをお勧めします。
+                </p>
+              </div>
+
+              <button
+                onClick={handleStartOver}
+                className="text-sm text-text-secondary hover:text-foreground transition-colors"
+              >
+                ← 最初に戻る
+              </button>
             </div>
           )}
         </div>
 
-        {/* Help Section */}
-        <div className="mt-8 max-w-2xl mx-auto">
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+        {/* Help */}
+        {currentStep !== 'complete' && (
+          <div className="mt-16 border-t border-border pt-8">
+            <h3 className="text-sm font-semibold text-text-muted uppercase tracking-widest mb-4">
               お困りの場合
             </h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-              <li>
-                • 生体認証に失敗する場合は、事前登録したデバイスを使用しているか確認してください
-              </li>
-              <li>
-                • Secret
-                Codeが見つからない場合は、事前登録時のメールまたはスクリーンショットをご確認ください
-              </li>
-              <li>• Secret Codeは大文字・小文字を区別しません</li>
-              <li>
-                • それでも解決しない場合は、施設の緊急連絡先にお問い合わせください
-              </li>
+            <ul className="text-sm text-text-secondary space-y-2 leading-relaxed">
+              <li>・ 事前登録したデバイスで認証を行ってください</li>
+              <li>・ Secret Codeは大文字・小文字を区別しません</li>
+              <li>・ 解決しない場合は施設の緊急連絡先にお問い合わせください</li>
             </ul>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

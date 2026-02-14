@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
+import Link from 'next/link';
 import { Reservation } from '@/lib/supabase/types';
 import GuestInfoForm from './components/GuestInfoForm';
 import PasskeyRegistration from './components/PasskeyRegistration';
@@ -51,10 +52,13 @@ export default function RegisterPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">読込中...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="relative w-10 h-10 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full border-2 border-border" />
+            <div className="absolute inset-0 rounded-full border-2 border-foreground border-t-transparent animate-spin" />
+          </div>
+          <p className="text-sm text-text-secondary">読込中...</p>
         </div>
       </div>
     );
@@ -62,84 +66,81 @@ export default function RegisterPage({
 
   if (error || !reservation) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 max-w-md w-full">
-          <div className="text-center">
-            <div className="text-red-600 text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              予約が見つかりません
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              {error || '指定された予約IDが存在しません。URLをご確認ください。'}
-            </p>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center animate-fade-in">
+          <div className="text-5xl mb-6">⚠</div>
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            予約が見つかりません
+          </h1>
+          <p className="text-text-secondary mb-8">
+            {error || '指定された予約IDが存在しません。URLをご確認ください。'}
+          </p>
+          <Link
+            href="/"
+            className="px-6 py-3 rounded-lg bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
+          >
+            ホームに戻る
+          </Link>
         </div>
       </div>
     );
   }
 
+  const steps = [
+    { key: 'guest', label: '宿泊者情報' },
+    { key: 'device', label: 'デバイス登録' },
+  ];
+  const currentIndex = guestInfoSubmitted ? (passkeyRegistered ? 2 : 1) : 0;
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            事前登録
-          </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            宿泊者情報とデバイス登録を完了してください
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <nav className="max-w-2xl mx-auto px-6 py-8 flex items-center justify-between">
+        <Link href="/" className="text-lg font-semibold tracking-tight text-foreground">
+          Smart Check-in
+        </Link>
+      </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
-            <div className="flex items-center">
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  guestInfoSubmitted
-                    ? 'bg-green-500 text-white'
-                    : 'bg-blue-500 text-white'
-                }`}
-              >
-                {guestInfoSubmitted ? '✓' : '1'}
+      <div className="max-w-2xl mx-auto px-6 pb-16">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
+          事前登録
+        </h1>
+        <p className="text-text-secondary mb-10">
+          宿泊者情報とデバイス登録を完了してください
+        </p>
+
+        {/* Progress */}
+        <div className="flex items-center gap-2 mb-10">
+          {steps.map((step, i) => (
+            <div key={step.key} className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${
+                    i < currentIndex
+                      ? 'bg-foreground text-background'
+                      : i === currentIndex
+                      ? 'bg-foreground text-background'
+                      : 'bg-surface-secondary text-text-muted border border-border'
+                  }`}
+                >
+                  {i < currentIndex ? '✓' : i + 1}
+                </div>
+                <span className={`text-sm ${i <= currentIndex ? 'text-foreground font-medium' : 'text-text-muted'}`}>
+                  {step.label}
+                </span>
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                宿泊者情報
-              </span>
+              {i < steps.length - 1 && (
+                <div className={`w-8 h-px ${i < currentIndex ? 'bg-foreground' : 'bg-border'}`} />
+              )}
             </div>
-
-            <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
-
-            <div className="flex items-center">
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  passkeyRegistered
-                    ? 'bg-green-500 text-white'
-                    : guestInfoSubmitted
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {passkeyRegistered ? '✓' : '2'}
-              </div>
-              <span className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
-                デバイス登録
-              </span>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="space-y-8">
-          {/* Step 1: Guest Info Form */}
           <GuestInfoForm
             reservation={reservation}
             onGuestInfoSubmitted={handleGuestInfoSubmitted}
           />
 
-          {/* Step 2: Passkey Registration (only shown after guest info is submitted) */}
           {guestInfoSubmitted && (
             <PasskeyRegistration
               reservation={reservation}
@@ -147,33 +148,25 @@ export default function RegisterPage({
             />
           )}
 
-          {/* Completion Message */}
           {passkeyRegistered && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <div className="text-center">
-                <div className="text-green-600 text-6xl mb-4">✓</div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  登録完了
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  事前登録がすべて完了しました。
-                  <br />
-                  チェックイン当日は、登録したデバイスとSecret
-                  Codeをご準備ください。
-                </p>
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-4 max-w-md mx-auto">
-                  <p className="text-sm text-blue-900 dark:text-blue-300">
-                    <strong>チェックイン方法:</strong>
-                    <br />
-                    1. QRコードをスキャンしてチェックイン画面を表示
-                    <br />
-                    2. 生体認証でデバイス確認
-                    <br />
-                    3. Secret Codeを入力
-                    <br />
-                    4. 解錠PINが表示されます
-                  </p>
-                </div>
+            <div className="text-center py-6 animate-fade-in">
+              <div className="text-4xl mb-4">✓</div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                登録完了
+              </h2>
+              <p className="text-text-secondary mb-8">
+                事前登録がすべて完了しました。
+                <br />
+                チェックイン当日は、登録したデバイスとSecret Codeをご準備ください。
+              </p>
+              <div className="bg-surface-secondary rounded-lg p-4 max-w-sm mx-auto text-left">
+                <p className="text-sm text-foreground font-medium mb-2">チェックイン方法:</p>
+                <ol className="text-sm text-text-secondary space-y-1 list-decimal list-inside">
+                  <li>チェックイン画面にアクセス</li>
+                  <li>生体認証でデバイス確認</li>
+                  <li>Secret Codeを入力</li>
+                  <li>解錠PINが表示されます</li>
+                </ol>
               </div>
             </div>
           )}

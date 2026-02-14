@@ -1,51 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Middleware: Admin routes protection with Basic Authentication
+ * Middleware: Admin routes protection with cookie-based session
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect admin routes
-  if (pathname.startsWith('/admin') || isAdminApiRoute(pathname, request.method)) {
+  // Skip login page itself
+  if (pathname === '/admin/login') {
+    return NextResponse.next();
+  }
+
+  // Protect admin pages
+  if (pathname.startsWith('/admin')) {
+    return handleAdminAuth(request);
+  }
+
+  // Protect admin API routes (POST/DELETE)
+  if (pathname === '/api/reservations' && (request.method === 'POST' || request.method === 'DELETE')) {
     return handleAdminAuth(request);
   }
 
   return NextResponse.next();
 }
 
-function isAdminApiRoute(pathname: string, method: string): boolean {
-  // POST (create) and DELETE on /api/reservations require admin auth
-  if (pathname === '/api/reservations' && (method === 'POST' || method === 'DELETE')) {
-    return true;
-  }
-  return false;
-}
-
 function handleAdminAuth(request: NextRequest): NextResponse {
-  const authHeader = request.headers.get('authorization');
+  const sessionToken = request.cookies.get('admin_session')?.value;
 
-  if (authHeader) {
-    const encodedCredentials = authHeader.split(' ')[1];
-    if (encodedCredentials) {
-      const decodedCredentials = atob(encodedCredentials);
-      const [username, password] = decodedCredentials.split(':');
-
-      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
-      if (username === 'admin' && password === adminPassword) {
-        return NextResponse.next();
-      }
-    }
+  if (sessionToken === 'authenticated') {
+    return NextResponse.next();
   }
 
-  // Return 401 with Basic Auth challenge
-  return new NextResponse('Authentication required', {
-    status: 401,
-    headers: {
-      'WWW-Authenticate': 'Basic realm="Smart Check-in Admin"',
-    },
-  });
+  // Redirect to login page for page requests
+  if (!request.nextUrl.pathname.startsWith('/api/')) {
+    const loginUrl = new URL('/admin/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Return 401 for API requests
+  return new NextResponse('Unauthorized', { status: 401 });
 }
 
 export const config = {

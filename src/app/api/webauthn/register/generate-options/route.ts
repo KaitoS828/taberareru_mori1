@@ -49,10 +49,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate registration options
+    // v13 requires userID as Uint8Array
+    const userIDBytes = new TextEncoder().encode(reservationId);
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userID: reservationId,
+      userID: userIDBytes,
       userName: reservation.guest_name || reservationId,
       attestationType: 'none',
       authenticatorSelection: {

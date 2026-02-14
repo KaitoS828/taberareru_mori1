@@ -22,14 +22,12 @@ export default function PasskeyRegistration({
     setIsLoading(true);
 
     try {
-      // Check if browser supports WebAuthn
       if (!window.PublicKeyCredential) {
         throw new Error(
           'このブラウザはWebAuthn（生体認証）に対応していません。Chrome、Safari、Firefoxの最新版をご利用ください。'
         );
       }
 
-      // Step 1: Get registration options from server
       const optionsResponse = await fetch(
         '/api/webauthn/register/generate-options',
         {
@@ -47,21 +45,16 @@ export default function PasskeyRegistration({
 
       const { options, challengeId } = optionsData;
 
-      // Step 2: Start WebAuthn registration (browser prompts for biometric)
       let credential;
       try {
         credential = await startRegistration(options);
       } catch (regError) {
-        if (
-          regError instanceof Error &&
-          regError.name === 'NotAllowedError'
-        ) {
+        if (regError instanceof Error && regError.name === 'NotAllowedError') {
           throw new Error('生体認証がキャンセルされました。もう一度お試しください。');
         }
         throw new Error('生体認証に失敗しました。デバイスの設定をご確認ください。');
       }
 
-      // Step 3: Verify registration with server
       const verifyResponse = await fetch('/api/webauthn/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,51 +81,50 @@ export default function PasskeyRegistration({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        生体認証デバイス登録
-      </h2>
-
-      <div className="mb-6 space-y-3">
-        <p className="text-gray-600 dark:text-gray-400">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2">
+          生体認証デバイス登録
+        </h2>
+        <p className="text-text-secondary text-sm">
           チェックイン時に使用する生体認証（パスキー）を登録します。
         </p>
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-4">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">
-            対応デバイス:
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-            <li>• iPhone/iPad: Face ID または Touch ID</li>
-            <li>• Mac: Touch ID</li>
-            <li>• Windows: Windows Hello（顔認証・指紋認証）</li>
-            <li>• Android: 指紋認証または顔認証</li>
-          </ul>
-        </div>
+      </div>
+
+      <div className="bg-surface-secondary rounded-lg p-4">
+        <p className="text-sm font-medium text-foreground mb-2">対応デバイス:</p>
+        <ul className="text-sm text-text-secondary space-y-1">
+          <li>・ iPhone/iPad: Face ID または Touch ID</li>
+          <li>・ Mac: Touch ID</li>
+          <li>・ Windows: Windows Hello（顔認証・指紋認証）</li>
+          <li>・ Android: 指紋認証または顔認証</li>
+        </ul>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-          <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
+        <div className="rounded-lg bg-danger/5 border border-danger/20 p-4">
+          <p className="text-sm text-danger">{error}</p>
         </div>
       )}
 
       {isRegistered ? (
-        <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-6 border-2 border-green-500">
-          <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-4">
-            ✓ デバイス登録が完了しました
-          </h3>
-          <p className="text-green-700 dark:text-green-400 mb-4">
-            チェックイン当日は、このデバイスで生体認証を行ってください。
-          </p>
+        <div className="space-y-4 animate-fade-in">
+          <div className="bg-success/5 border border-success/20 rounded-lg p-4">
+            <p className="text-sm font-semibold text-success mb-1">✓ デバイス登録が完了しました</p>
+            <p className="text-sm text-text-secondary">
+              チェックイン当日は、このデバイスで生体認証を行ってください。
+            </p>
+          </div>
 
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 rounded-lg p-4 mt-4">
-            <h4 className="font-bold text-yellow-900 dark:text-yellow-300 mb-2">
-              Secret Code: {reservation.secret_code}
-            </h4>
-            <p className="text-sm text-yellow-800 dark:text-yellow-400">
-              <strong>重要:</strong>{' '}
-              このSecret Codeは当日のチェックインで必要です。
-              スクリーンショットを保存するか、メモしておいてください。
+          <div className="border-2 border-foreground rounded-lg p-4">
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-1">
+              Secret Code
+            </p>
+            <p className="text-2xl font-bold font-mono text-foreground tracking-widest">
+              {reservation.secret_code}
+            </p>
+            <p className="text-xs text-text-muted mt-2">
+              このSecret Codeは当日のチェックインで必要です。スクリーンショットを保存してください。
             </p>
           </div>
         </div>
@@ -140,44 +132,22 @@ export default function PasskeyRegistration({
         <button
           onClick={handleRegisterPasskey}
           disabled={isLoading}
-          className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-4 rounded-lg bg-foreground text-background text-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
-            <>
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+            <span className="flex items-center justify-center gap-2">
+              <span className="inline-block w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
               生体認証を待機中...
-            </>
+            </span>
           ) : (
-            '🔐 デバイスを登録（生体認証）'
+            'デバイスを登録（生体認証）'
           )}
         </button>
       )}
 
-      <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-        <p>
-          ※
-          生体認証を登録すると、チェックイン時にこのデバイスでのみ解錠PINを取得できます。
-        </p>
-      </div>
+      <p className="text-xs text-text-muted">
+        ※ 生体認証を登録すると、チェックイン時にこのデバイスでのみ解錠PINを取得できます。
+      </p>
     </div>
   );
 }
